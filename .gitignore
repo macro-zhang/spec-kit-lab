@@ -21,3 +21,4 @@ test_output.txt
 .vscode/
 .claude/
 .DS_Store
+*~

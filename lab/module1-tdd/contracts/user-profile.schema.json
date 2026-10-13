@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/contracts/user-profile.schema.json",
+  "title": "UserProfile",
+  "description": "对外承诺的用户画像契约。冻结在版本库里，任何改动都必须走评审。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "username", "email"],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "用户 ID，必须为正整数"
+    },
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 32,
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "email": {
+      "type": "string",
+      "pattern": "^[^@\\s]+@[^@\\s]+\\.[a-z]{2,}$"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["admin", "member", "guest"],
+      "default": "member",
+      "description": "可省略；省略时由实现补 'member'。故不在 required 里。"
+    },
+    "tags": {
+      "type": "array",
+      "default": [],
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9_-]+$"
+      }
+    }
+  }
+}

@@ -1,0 +1,186 @@
+# =============================================================================
+#  ci/quality-gate.yml -- SAMPLE GitHub Actions workflow (deliberately NOT wired)
+# =============================================================================
+#  This file lives inside the lab on purpose. It is a teaching artefact, not a
+#  live pipeline: it is NOT installed under .github/workflows/, so GitHub never
+#  sees it and it cannot fire on this repository. In a real project you would
+#  copy it to .github/workflows/quality-gate.yml and it would run as-is.
+#
+#  What it demonstrates, one step at a time:
+#    1. `git diff --name-only` as the CI-side equivalent of the local hook, and
+#       why CI needs `--cached` after a `reset --soft` to imitate "staged".
+#    2. A non-zero exit code as the ONLY thing that blocks a pipeline: `exit 1`
+#       fails the step, fails the job, fails the required status check.
+#    3. ::error:: annotations, so the failure shows up on the PR's Files-changed
+#       view instead of only in a log nobody opens.
+#    4. The `paths:` filter trap (comment block below) -- the single most
+#       expensive way to break a required check.
+#
+#  ---------------------------------------------------------------------------
+#  THE `paths:` FILTER TRAP -- read this before adding `paths:` to any required
+#  workflow.
+#
+#  A required status check that is SKIPPED by `paths:` filtering does not report
+#  "success" and it does not report "failure": it reports NOTHING AT ALL. GitHub
+#  therefore keeps the PR in "Expected -- waiting for status to be reported"
+#  forever, and every PR that does not touch the filtered path is blocked by the
+#  very check that was supposed to be selective. The trap is silent: the workflow
+#  looks green in the Actions tab because it did not run.
+#
+#  spec-kit hit exactly this and wrote the lesson into the workflow header
+#  (.github/workflows/extension-version-guard.yml:13-16):
+#
+#      "Deliberately no `paths:` filter: a required status check that is skipped
+#       by path filtering stays in \"Expected\" state and blocks every PR that
+#       does not touch extensions/**. The check runs on every pull request
+#       instead and the script reports success when nothing under extensions/
+#       changed."
+#
+#  So the correct pattern is the one used both there and here: run the check on
+#  EVERY pull request, and let the check itself decide. Path selection, if you
+#  want it, belongs INSIDE the job (where a skip can still `exit 0`), never in
+#  the workflow's trigger. Our checker implements exactly that contract: no
+#  src/ changes staged => "no source files touched" => exit 0 => green.
+#
+#  WRONG -- blocks every PR that does not touch src/ ** or tests/ **:
+#      on:
+#        pull_request:
+#          paths:
+#            - 'src/**'
+#            - 'tests/**'
+#
+#  The same trap applies to `if:` conditions on the job that can skip it, and to
+#  `continue-on-error: true` on the step that is the required check.
+#  ---------------------------------------------------------------------------
+#
+#  NOTE ON DIFF BASE: spec-kit's workflow diffs HEAD^1 instead of
+#  `github.event.pull_request.base.sha`, because the event's base sha can be
+#  stale for a long-lived PR (observed on spec-kit PR #4395). This sample prefers
+#  the event sha and falls back to HEAD^1 when it was not fetched, which needs
+#  less history. It also does not use the `pull_request_target` trigger: that one
+#  runs with a writable token and is a security footgun for a check like this.
+# =============================================================================
+
+name: quality-gate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege: a diff check only ever needs to read the repository.
+permissions:
+  contents: read
+
+env:
+  # In a real project the checker sits at scripts/check_tests_touched.py; here we
+  # point at the lab copy so the sample runs unchanged from this repository.
+  CHECKER: lab/module2-git/scripts/check_tests_touched.py
+  SRC_PREFIX: src/
+  TESTS_PREFIX: tests/
+
+jobs:
+  tests-touched:
+    name: src changes must come with test changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # We need the merge base, not just the tip. fetch-depth: 0 is the
+          # simple, always-correct choice; fetch-depth: 2 is enough when you
+          # diff against HEAD^1 like spec-kit does.
+          fetch-depth: 0
+
+      # ---------------------------------------------------------------------
+      # 1. make the PR range look like "staged changes"
+      # ---------------------------------------------------------------------
+      # The local hook reads the index (`git diff --cached`). CI has a clean
+      # checkout with an empty index, so the range has to be reconstructed: a
+      # soft reset moves HEAD down to the base while the index keeps the tip's
+      # tree. `git diff --cached` then lists exactly the files the PR changed,
+      # and the very same checker (and the very same mode) runs locally and in
+      # CI. No duplicated rule in two languages, which is the whole point.
+      - name: Reconstruct the PR range as staged changes
+        run: |
+          set -euo pipefail
+          base='${{ github.event.pull_request.base.sha }}'
+          if [ -z "$base" ] || ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
+            echo "base sha unavailable ('$base') -- falling back to HEAD^1"
+            base="$(git rev-parse HEAD^1)"
+          fi
+          echo "diff base : $base ($(git rev-parse --short "$base"))"
+          echo "tip       : $(git rev-parse --short HEAD)"
+          git reset --quiet --soft "$base"
+          echo "changed files in this pull request:"
+          git --no-pager diff --cached --name-only
+
+      # ---------------------------------------------------------------------
+      # 2. what the checker automates, spelled out by hand first
+      # ---------------------------------------------------------------------
+      # Reads the same `git diff --cached --name-only` output as the hook, then
+      # greps for the two prefixes. `|| true` keeps `set -e` from aborting on an
+      # empty grep -- an empty match is a valid answer here, not an error.
+      - name: Hand-rolled detection (no checker, raw shell)
+        run: |
+          set -euo pipefail
+          changed="$(git diff --cached --name-only)"
+          if [ -z "$changed" ]; then
+            echo "nothing changed -- nothing to check"
+            exit 0
+          fi
+          src="$(printf '%s\n' "$changed" | grep -E "^${SRC_PREFIX}" || true)"
+          tests="$(printf '%s\n' "$changed" | grep -E "^${TESTS_PREFIX}" || true)"
+          echo "src files   : $(printf '%s' "$src" | wc -l)"
+          echo "test files  : $(printf '%s' "$tests" | wc -l)"
+          if [ -n "$src" ] && [ -z "$tests" ]; then
+            # ::error:: is what turns a log line into a red annotation on the PR.
+            echo "::error title=src changed without a test change::${SRC_PREFIX} was modified but nothing under ${TESTS_PREFIX} was."
+            printf 'offending file: %s\n' "$src" >&2
+            # This single non-zero exit is what blocks the pipeline: the step
+            # fails, the job fails, and the required check reports "failure"
+            # instead of staying silently "Expected".
+            exit 1
+          fi
+          echo "::notice title=quality-gate::src/ and tests/ are consistent"
+
+      # ---------------------------------------------------------------------
+      # 3. the real thing: the lab checker, plus its stream discipline
+      # ---------------------------------------------------------------------
+      # stdout carries the payload (--json), stderr carries only ERROR lines.
+      # The step leans on that split: the payload is echoed for humans, and each
+      # stderr line becomes an annotation. Exit code is forwarded unchanged --
+      # a wrapper must never invent a status of its own.
+      - name: Run check_tests_touched.py and annotate
+        run: |
+          set -uo pipefail
+          out="$(python3 "$CHECKER" --json 2>checker.err)"
+          status=$?
+          printf '%s\n' "$out"
+          if [ -s checker.err ]; then
+            while IFS= read -r line; do
+              echo "::error title=check-tests-touched::${line}"
+            done < checker.err
+          fi
+          echo "checker exit code: $status"
+          exit "$status"
+
+      # ---------------------------------------------------------------------
+      # 4. the same checker, restricted with a path filter and --diff-filter
+      # ---------------------------------------------------------------------
+      # `--diff-filter=d` excludes deletions (lower-case letters exclude), so a
+      # deleted test file does not count as "a test was touched" and a deleted
+      # source file does not demand one. Paths after `--` are pathspecs, never
+      # revision names, which is why they can safely contain slashes.
+      - name: Show what the prefixes would see
+        if: always()
+        run: |
+          set -euo pipefail
+          echo '--- src/ only (--diff-filter=d hides deletions) ---'
+          git --no-pager diff --cached --name-only --diff-filter=d -- "${SRC_PREFIX}" || true
+          echo '--- tests/ only ---'
+          git --no-pager diff --cached --name-only --diff-filter=d -- "${TESTS_PREFIX}" || true
+          echo '--- every change including deletions, NUL-safe form (-z) ---'
+          # -z is what the checker uses: NUL-separated, so a non-ASCII path is
+          # not C-quoted into "\346\226\207" (see the lab README, table 1).
+          git --no-pager diff --cached --name-only -z | tr '\0' '\n'

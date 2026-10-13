@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+#
+# ============================================================================
+#  prepare-commit-msg  --  module2-git lab
+# ============================================================================
+#
+# This is the SECOND kind of hook, and it exists in this lab to make one point:
+# a hook is not only a gate. Some hooks receive a FILE and are allowed to edit
+# it, i.e. they change what the commit *is*, not just whether it happens.
+#
+# git calls this hook with:
+#   $1  path to the commit-message file (usually .git/COMMIT_EDITMSG)
+#   $2  the source of the message:
+#         message  (-m / -F given)      template (editor opened a template)
+#         merge    (merge commit)       squash  (squash commit)
+#         commit   (-c / --amend / --fixup)
+#   $3  the commit SHA (only when the source is `commit`)
+#
+# WHAT IT DOES HERE
+#   Appends a trailer naming the current branch, so `git log` records which
+#   branch/context a change was written on. Appending is safe: git only strips
+#   lines that start with the comment character (`#`), and our line starts
+#   with `[`.
+#
+# TIMING (measured on git 2.53.0.windows.2)
+#   pre-commit  ->  prepare-commit-msg  ->  commit-msg  ->  (commit)  ->  post-commit
+#   This hook runs AFTER pre-commit: if pre-commit exits non-zero the commit is
+#   already abandoned and the message file is never created.
+#
+#   IMPORTANT, and contrary to what most people assume:
+#   `git commit --no-verify` does NOT skip this hook. Measured:
+#       plain commit       -> pre-commit, prepare-commit-msg, commit-msg, post-commit
+#       commit --no-verify -> prepare-commit-msg, post-commit
+#   --no-verify is documented as bypassing `pre-commit` and `commit-msg` only.
+#   So if you want a hook that survives the bypass, this is the hook type to
+#   use -- but you also cannot make it a hard gate, because...
+#
+#   ...a hook that rewrites the message CAN still block: exit non-zero and git
+#   aborts the commit, exactly like pre-commit. Message rewriting and blocking
+#   are independent powers.
+#
+# STREAM / EXIT CODE DISCIPLINE
+#   stdout stays empty (stdout is for payload; the payload here is the message
+#   FILE, not stdout). Diagnostics go to stderr. Exit 0 = fine, non-zero = abort.
+#
+# INSTALL
+#   cp hooks/prepare-commit-msg .git/hooks/prepare-commit-msg
+#   chmod +x .git/hooks/prepare-commit-msg      # a no-op on Windows: git for
+#                                               # Windows keys off the shebang,
+#                                               # NTFS has no POSIX exec bit
+# ============================================================================
+
+set -euo pipefail
+
+msg_file="${1:-}"
+msg_source="${2:-unknown}"
+
+if [[ -z "$msg_file" || ! -f "$msg_file" ]]; then
+  printf 'ERROR: prepare-commit-msg: git did not pass a usable message file (got: %s)\n' "${msg_file:-<empty>}" >&2
+  exit 1   # fail closed
+fi
+
+# Branch name. `git symbolic-ref --short -q HEAD` also works on an unborn HEAD
+# (a fresh `git init` before the first commit), where
+# `git rev-parse --abbrev-ref HEAD` fails with "ambiguous argument 'HEAD'".
+# -q keeps it quiet; `|| true` stops `set -e` from killing us on detached HEAD.
+branch="$(git symbolic-ref --short -q HEAD || true)"
+if [[ -z "$branch" ]]; then
+  branch="detached@$(git rev-parse --short HEAD 2>/dev/null || printf 'unknown')"
+fi
+
+# Idempotent: git can call this more than once (e.g. --amend, editor re-opens).
+if grep -qF '[branch ' "$msg_file"; then
+  exit 0
+fi
+
+printf '\n[branch %s]\n' "$branch" >>"$msg_file"
+
+# Show what happened, for humans, without polluting stdout.
+printf 'prepare-commit-msg[branch-trailer]: %s (source: %s)\n' "$branch" "$msg_source" >&2
+exit 0

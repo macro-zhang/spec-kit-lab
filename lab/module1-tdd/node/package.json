@@ -1,0 +1,12 @@
+{
+  "name": "module1-tdd-node",
+  "private": true,
+  "type": "module",
+  "description": "零依赖 Node 补充实验：用 node:test 复刻模块1 的 Red-Green-Refactor 与契约校验。故意不装 vitest/jest —— 先看清 node --test 原生能力，再决定要不要上框架。",
+  "scripts": {
+    "test": "node test/duration.test.mjs && node test/contract.test.mjs",
+    "test:duration": "node test/duration.test.mjs",
+    "test:contract": "node test/contract.test.mjs",
+    "rgr": "node run-rgr.mjs"
+  }
+}

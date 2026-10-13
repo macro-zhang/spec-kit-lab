@@ -1,0 +1,18 @@
+[project]
+name = "speckit-lab-module1"
+version = "0.1.0"
+description = "模块1 实验台：TDD Red-Green-Refactor 与契约测试"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.0", "jsonschema>=4.0"]
+
+[tool.pytest.ini_options]
+# 把 src/ 加进 import 路径，这样 `import calc` 才能找到源码。
+# 等价于旧式做法在 tests/ 里塞 conftest.py 做 sys.path 操作。
+pythonpath = ["src"]
+testpaths = ["tests"]
+# -ra: 结尾打印所有非通过用例的简短原因（含 xfail/skip）
+# --strict-markers: 手滑写错 marker 名字直接报错，而不是静默忽略
+addopts = "-ra --strict-markers --tb=short"
+markers = [
+    "contract: 契约测试 —— 校验对外承诺的输入输出形状",
+]

@@ -1,0 +1,6 @@
+[tool.pytest.ini_options]
+# The gate's own test suite. Run it with:
+#   ..\.venv\Scripts\python.exe -m pytest -q
+# from this directory.
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --tb=short"
