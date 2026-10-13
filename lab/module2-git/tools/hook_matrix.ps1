@@ -1,8 +1,8 @@
 $ErrorActionPreference = 'Continue'
-$py      = 'F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe'
-$checker = 'F:\Users\zhb\Desktop\study\lab\module2-git\scripts\check_tests_touched.py'
-$bashHook= 'F:\Users\zhb\Desktop\study\lab\module2-git\hooks\pre-commit'
-$base    = 'F:\Users\zhb\Desktop\study\lab\_tmp_matrix'
+$py      = 'python'
+$checker = 'lab/module2-git\scripts\check_tests_touched.py'
+$bashHook= 'lab/module2-git\hooks\pre-commit'
+$base    = 'lab/_tmp_matrix'
 if (Test-Path $base) { Remove-Item -Recurse -Force $base }
 
 function New-Case([string]$name) {

@@ -23,8 +23,8 @@ const SCHEMA = JSON.parse(readFileSync(SCHEMA_PATH, "utf8"));
 
 const VALID_PROFILE = Object.freeze({
   id: 7,
-  username: "zhb_01",
-  email: "zhb@example.com",
+  username: "alice_01",
+  email: "alice@example.com",
   role: "member",
   tags: ["alpha", "beta-2"],
 });

@@ -70,7 +70,7 @@ lab/module2-git/
 ### 1. PowerShell 端到端演示（本机已实测）
 
 ```powershell
-cd C:\Users\zhb\Desktop\study\lab\module2-git
+cd lab/module2-git
 powershell -NoProfile -ExecutionPolicy Bypass -File .\demo_hook.ps1
 ```
 
@@ -78,12 +78,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\demo_hook.ps1
 SCENARIO 1/2/3 与 SUMMARY 的每一行文本、退出码都没有改动）：
 
 ```
-  [i] lab directory : C:\Users\zhb\Desktop\study\lab\module2-git
+  [i] lab directory : lab/module2-git
   [i] hook flavour  : python
   [i] PowerShell    : 5.1.26100.9168
   [i] git           : git version 2.53.0.windows.2
-  [i] python        : C:\Users\zhb\AppData\Local\Programs\Python\Python311\python.exe    (3.11.0)
-  [i] temp repo     : C:\Users\zhb\AppData\Local\Temp\dsh-7dOFih\module2-git-demo-4ef2aaf6
+  [i] python        : python    (3.11.0)
+  [i] temp repo     : <临时目录>\dsh-7dOFih\module2-git-demo-4ef2aaf6
   [i] branch        : feature/hooked
   [i] hooks         : python shebang shims -> ...\lab\module2-git\scripts\check_tests_touched.py
 
@@ -142,7 +142,7 @@ X    the checker sees the real path, not t... true           true               
 
 RESULT: 17 passed, 0 failed  (flavour: python)
 ALL ASSERTIONS PASSED
-  [i] removed temp repo: C:\Users\zhb\AppData\Local\Temp\dsh-7dOFih\module2-git-demo-4ef2aaf6
+  [i] removed temp repo: <临时目录>\dsh-7dOFih\module2-git-demo-4ef2aaf6
   [DEMO-EXITCODE=0]
 ```
 
@@ -433,7 +433,7 @@ exec powershell -NoProfile -ExecutionPolicy Bypass -File "$(dirname "$0")/pre-co
 | `ci/quality-gate.yml` | ✅ 已校验 | YAML 能被解析；5 个 `run:` 块逐个通过引号/块配平/LF/无 BOM 检查；触发条件确认**没有** `paths:` |
 | `demo_hook.sh`、`hooks/pre-commit`、`hooks/prepare-commit-msg` | ⚠️ **未能在本机执行** | 三个文件只做了静态检查（引号配平、块配平、LF、无 BOM）。原因见下节：本机任何 msys 二进制都无法启动 |
 | `hooks/pre-commit.ps1` 的端到端运行 | ⚠️ 未在本机以 `.git/hooks/pre-commit` 的身份运行 | 它引用的检查器路径、退出码与流纪律已逐条核对；python shebang 转发版钩子已在真实 `git commit` 中被证明能拦住提交 |
-| 目录外的副作用 | ✅ 已确认 | `C:\Users\zhb\Desktop\study\.github\` 不存在；spec-kit 克隆 `git status --porcelain` 干净 |
+| 目录外的副作用 | ✅ 已确认 | 仓库根下 `.github/` 不存在；spec-kit 克隆 `git status --porcelain` 干净 |
 
 ---
 
@@ -470,7 +470,7 @@ exec powershell -NoProfile -ExecutionPolicy Bypass -File "$(dirname "$0")/pre-co
    `& .\x.ps1` 直接拒绝运行（文件上**没有** Zone.Identifier）。跑法：
    `powershell -NoProfile -ExecutionPolicy Bypass -File x.ps1`。
 10. **每一条 git 命令都会打一行无害警告**：
-    `warning: unable to access 'C:\Users\zhb/.config/git/ignore': Permission denied`（退出码仍是 0）。
+    `warning: unable to access '~/.config/git/ignore': Permission denied`（Windows 上打印的是家目录全路径；退出码仍是 0）。
     它会污染"合并两个流"的断言——所以演示脚本的断言只读 **stdout**，显示才用合并输出。
 
 ---

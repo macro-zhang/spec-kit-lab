@@ -19,13 +19,13 @@
 
 ## 环境
 
-- 解释器：本目录 `.venv\Scripts\python.exe`（**Python 3.11.0**，已随工作区迁移到 F 盘并验证可用）
+- 解释器：`.venv\Scripts\python.exe`（**Python 3.11.0**；`lab/.venv/` 是本地虚拟环境，已在 `.gitignore` 中排除，不入库）
 - 依赖：三个模块**只使用标准库**（pytest 在 .venv 中，供 module1/2 的测试用）
 - 无需任何环境变量：module3 四个脚本已内置 UTF-8 防护，GBK 控制台/管道下实测全部 rc=0
 
 ```powershell
 # 一次性冒烟：全部模块的测试
-F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe -m pytest -q module1-tdd module2-git
+python -m pytest -q module1-tdd module2-git
 #   → module1: 全绿（RGR 三态 + 契约）
 #   → module2: 75 passed（检查器 + 钩子包装 + CI YAML 契约）
 ```
@@ -81,11 +81,11 @@ cd module3-shell
 
 ---
 
-## 状态（2026-10-11，迁移到 F 盘后）
+## 状态（2026-10-11，本机验收）
 
 - ✅ 三个模块全部可用：module1（RGR + 契约）、module2（75 passed 测试 + 钩子演示 17/17）、module3（四脚本 GBK 修复后全绿）
 - ✅ module3 四脚本内置 `_force_utf8()`：Windows GBK 控制台/管道不再崩溃（修复前 03/04 会 `UnicodeEncodeError` exit 1）
 - ✅ module2 的 bash 钩子/`demo_hook.sh` 在本机 Git Bash 实测正常（dsh 沙箱内 0xC0000142 问题是沙箱限制，非本机问题）
-- ✅ 全部引用路径已更新为 F 盘（`F:\Users\zhb\Desktop\study\lab`）
+- ✅ 全部引用路径均相对仓库根（`lab/…`）
 
 > 一句话索引：讲义在 `../docs/`，实验在这个目录，实锤在 `../spec-kit/` 的行号里。

@@ -50,8 +50,8 @@ lab/module3-shell/
 （每个脚本 `main()` 第一行调用），在 GBK 控制台/管道下不会因 emoji 崩溃：
 
 ```powershell
-cd F:\Users\zhb\Desktop\study
-F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe lab\module3-shell\01_exit_codes.py
+cd <仓库根>
+python lab\module3-shell\01_exit_codes.py
 ```
 
 ### 编码问题已内建修复
@@ -78,10 +78,10 @@ F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe lab\module3-shell\01_exi
 ### 运行命令
 
 ```powershell
-F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe lab\module3-shell\01_exit_codes.py
+python lab\module3-shell\01_exit_codes.py
 ```
 
-### 实测输出（Python 3.11.0，本机，rc = 0；迁移到 F 盘后重跑）
+### 实测输出（Python 3.11.0，本机，rc = 0；重跑）
 
 ```
 ========================================================================
@@ -98,10 +98,10 @@ POSIX 退出码：0 = 成功，非 0 = 失败
 
 [未捕获异常]  命令: python 01_exit_codes.py --child-crash
     stderr | Traceback (most recent call last):
-    stderr |   File "F:\Users\zhb\Desktop\study\lab\module3-shell\01_exit_codes.py", line 125, in <module>
+    stderr |   File "lab/module3-shell\01_exit_codes.py", line 125, in <module>
     stderr |     raise SystemExit(child_main(argv[0]))
     stderr |                      ^^^^^^^^^^^^^^^^^^^
-    stderr |   File "F:\Users\zhb\Desktop\study\lab\module3-shell\01_exit_codes.py", line 70, in child_main
+    stderr |   File "lab/module3-shell\01_exit_codes.py", line 70, in child_main
     stderr |     raise ValueError("我崩溃了 —— 未捕获的异常")
     stderr | ValueError: 我崩溃了 —— 未捕获的异常
     >>> returncode = 1
@@ -152,13 +152,13 @@ POSIX 退出码：0 = 成功，非 0 = 失败
 ### 运行命令
 
 ```powershell
-$PY = 'F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe'
+$PY = 'python'
 & $PY lab\module3-shell\02_pipeline.py                 # 完整演示
 & $PY lab\module3-shell\02_pipeline.py --emit-good     # 被调用：正常输出
 & $PY lab\module3-shell\02_pipeline.py --emit-bad      # 被调用：错误 + 非 0
 ```
 
-### 实测输出（rc = 0；迁移到 F 盘后重跑，实验 2b 已实测通过）
+### 实测输出（rc = 0；重跑，实验 2b 已实测通过）
 
 ```
 ========================================================================
@@ -203,7 +203,7 @@ $PY = 'F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe'
 ### 实验 2b：bash 实测（本机 Git Bash 可用，已跑通）
 
 初版在 dsh 沙箱里实测时 bash 因 msys 信号管道初始化失败（`0xC0000142`）而无法启动，
-当时把 2b 标成了"未实测"（见「沙箱踩坑记录 · 坑 1」）。迁移到 F 盘后在本机重跑，
+当时把 2b 标成了"未实测"（见「沙箱踩坑记录 · 坑 1」）。在本机重跑，
 **Git Bash 完全正常**，A/B/C 三组结果全部按预期输出：
 
 - **A) 只看 stdout**：`2>/dev/null` 丢掉了 stderr，但退出码 4 不被丢弃——
@@ -234,13 +234,13 @@ $PY = 'F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe'
 ### 运行命令
 
 ```powershell
-F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe lab\module3-shell\03_filesystem.py
+python lab\module3-shell\03_filesystem.py
 ```
 
-### 实测输出（迁移到 F 盘后重跑，rc = 0，无需设编码变量）
+### 实测输出（重跑，rc = 0，无需设编码变量）
 
 ```
-临时工作目录: C:\Users\zhb\AppData\Local\Temp\speckit-lab3-xxx  (platform=windows)
+临时工作目录: <临时目录>\speckit-lab3-xxx  (platform=windows)
 
 ========================================================================
 实验 3a：mtime —— 判断'谁更新'，决定要不要重建
@@ -258,7 +258,7 @@ F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe lab\module3-shell\03_fil
   os.access(W_OK) = False  -> 只读生效: True
 
   现在尝试写入（应该失败）：
-    ✅ 被内核拦下: PermissionError: [Errno 13] Permission denied: 'C:\\Users\\zhb\\AppData\\Local\\Temp\\dsh-rdhiNr\\speckit-lab3-shytiohg\\constitution.frozen.md'
+    ✅ 被内核拦下: PermissionError: [Errno 13] Permission denied: '<临时目录>\\dsh-rdhiNr\\speckit-lab3-shytiohg\\constitution.frozen.md'
 
   注意：只读位挡得住'手滑'，挡不住 root。真正的强制力来自
   版本控制 + CI 门禁（谁能改、改完谁来验），只读位只是第一道软防线。
@@ -327,10 +327,10 @@ F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe lab\module3-shell\03_fil
 ### 运行命令
 
 ```powershell
-F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe lab\module3-shell\04_subprocess.py
+python lab\module3-shell\04_subprocess.py
 ```
 
-### 实测输出（迁移到 F 盘后重跑，rc = 0，无需设编码变量）
+### 实测输出（重跑，rc = 0，无需设编码变量）
 
 ```
 模块 3 / 实验 4：子进程与退出码
@@ -348,7 +348,7 @@ F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe lab\module3-shell\04_sub
 ========================================================================
   捕获到 CalledProcessError
     exc.returncode = 7
-    exc.cmd        = ['F:\\Users\\zhb\\Desktop\\study\\lab\\.venv\\Scripts\\python.exe', '-c', 'import sys; sys.exit(7)']
+    exc.cmd        = ['python', '-c', 'import sys; sys.exit(7)']
   -> 适合'这一步失败就没有后续可言'的场景。
 
 ========================================================================
@@ -384,7 +384,7 @@ F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe lab\module3-shell\04_sub
   读取参数 -> 调子进程 -> 判定 returncode -> 用自己的退出码汇报
   中间任何一步把失败吞掉，上层 CI 就失去了拦截能力。
 
-  当前仓库根: C:\Users\zhb\Desktop\study\lab\module3-shell
+  当前仓库根: lab\module3-shell
 ```
 
 ### 核心机制逐条解释
@@ -441,13 +441,13 @@ F:\Users\zhb\Desktop\study\lab\.venv\Scripts\python.exe lab\module3-shell\04_sub
 一个有文件的 `contracts/`，只取 stdout、丢弃 stderr）：
 
 ```
-stdout=[{"FEATURE_DIR":"C:\\Users\\zhb\\AppData\\Local\\Temp\\dsh-rdhiNr\\sk-probe2","AVAILABLE_DOCS":["research.md","contracts/"]}]  rc=0
+stdout=[{"FEATURE_DIR":"<临时目录>\\dsh-rdhiNr\\sk-probe2","AVAILABLE_DOCS":["research.md","contracts/"]}]  rc=0
 ```
 
 text 模式同一目录：
 
 ```
-FEATURE_DIR:C:\Users\zhb\AppData\Local\Temp\dsh-rdhiNr\sk-probe2
+FEATURE_DIR:<临时目录>\dsh-rdhiNr\sk-probe2
 AVAILABLE_DOCS:
   [OK] research.md
   [FAIL] data-model.md
@@ -553,18 +553,18 @@ def _status_marker(ok: bool) -> str:
 
 ---
 
-## 沙箱踩坑记录（dsh 沙箱内实测；迁移到 F 盘后本机复核）
+## 沙箱踩坑记录（dsh 沙箱内实测；本机本机复核）
 
 这一节是这个模块最有价值的部分之一：下面每一条都在 **dsh 沙箱环境**里真实
-复现过，有明确的命令、输出和退出码。**迁移到 F 盘后在本机（非沙箱）复核，
+复现过，有明确的命令、输出和退出码。**在本机（非沙箱）复核，
 坑 1（bash）已消失——bash 完全正常**；坑 2/3/4 是沙箱特有的进程/网络/缓存
 限制，在本机直接跑不会遇到。记录仍保留，因为它们解释"为什么当初 2b 标未实测"
 以及"工具链分层验证"的通用方法。
 
 ### 坑 1：bash 完全起不来（msys 运行时不可用）——**仅 dsh 沙箱内**，本机复核已消失
 
-> **2026-10-11 复核**：迁移到 F 盘后在本机重跑
-> `F:\Users\zhb\Desktop\study\lab\module3-shell\02_pipeline.py`，
+> **2026-10-11 复核**：在本机重跑
+> `lab/module3-shell\02_pipeline.py`，
 > 实验 2b 的 A/B/C 三组输出**全部正常**（见「实验 2」章节），
 > `bash -c "exit 0"` 返回 0。`0xC0000142` 是**沙箱信号管道**被拒导致的，
 > 不是本机问题。下面保留原始记录。
@@ -577,7 +577,7 @@ def _status_marker(ok: bool) -> str:
 ```
 
 `-1073741502` 的十六进制是 `0xC0000142` = `STATUS_DLL_INIT_FAILED`。
-Shell cwd was reset to C:\Users\zhb\Desktop\study
+Shell cwd was reset to <工作区>
 同一目录下的兄弟程序**全部**一样（实测）：
 
 | 程序 | 退出码 |
@@ -596,7 +596,7 @@ Shell cwd was reset to C:\Users\zhb\Desktop\study
 - 当时本 README 中所有关于 bash 行为（`2>/dev/null`、`2>&1`、`set -o pipefail`、
   `printf x` 技巧、`check_file` 实现）的结论，都来自**读源码**，不是执行结果。
 
-**复核结论（2026-10-11，迁移到 F 盘后在本机直接跑）**：bash 一切正常，
+**复核结论（2026-10-11，在本机直接跑）**：bash 一切正常，
 2b 三组实验全部通过（见「实验 2」的实测输出）。**这个坑不是本机缺陷，
 而是 dsh 沙箱对 msys 信号管道的限制**——换到非沙箱环境（本机终端、
 Git Bash、CI 的 GitHub Actions runner）都不会遇到。
@@ -606,8 +606,8 @@ Git Bash、CI 的 GitHub Actions runner）都不会遇到。
 实测（Node **v24.14.0**）：
 
 ```
-> node --test C:\Users\zhb\Desktop\study\lab
-✖ C:\Users\zhb\Desktop\study\lab (3.3366ms)
+> node --test lab
+✖ lab (3.3366ms)
 ℹ tests 1   ℹ pass 0   ℹ fail 1
 ✖ failing tests:
   Error: spawn EPERM
@@ -671,11 +671,11 @@ workspace-write 沙箱下写入被拒后，pip **既不报错也不前进**。
 
 ```
 > python -m pip cache dir
-c:\users\zhb\appdata\local\pip\cache
+%LOCALAPPDATA%\pip\cache
 > $env:LOCALAPPDATA
-C:\Users\zhb\AppData\Local
+%LOCALAPPDATA%
 > python -m pip --version
-pip 26.2.1 from C:\Users\zhb\Desktop\study\lab\.venv\Lib\site-packages\pip (python 3.11)
+pip 26.2.1 from lab\.venv\Lib\site-packages\pip (python 3.11)
 ```
 
 **对策**：`--no-cache-dir` + 把输出重定向到**真实文件句柄**而不是管道。
@@ -795,15 +795,15 @@ win32 stdio reconfigure 是同一手法。修复后实测（含强制 GBK 管道
 
 | 项目 | 状态 | 证据 |
 | --- | --- | --- |
-| `01_exit_codes.py` 主演示 | ✅ 实测（F 盘复核） | rc = **0**，输出已逐行抄录 |
+| `01_exit_codes.py` 主演示 | ✅ 实测（本机复核） | rc = **0**，输出已逐行抄录 |
 | `01_exit_codes.py --child-ok` | ✅ 实测 | rc = **0** |
 | `01_exit_codes.py --child-fail` | ✅ 实测 | rc = **3**，stdout 为空（0 字节），消息在 stderr |
 | `01_exit_codes.py --child-crash` | ✅ 实测 | rc = **1**，traceback 全在 stderr |
 | `02_pipeline.py` 实验 2（流分工） | ✅ 实测 | rc = **0**；`--emit-good` rc=0/40 字节、`--emit-bad` rc=4/stdout 空 |
-| `02_pipeline.py` 实验 2b（真实 bash） | ✅ **已实测**（F 盘复核） | bash 正常；A/B/C 三组输出全部按预期（`pipefail` 前 0 后 4） |
-| `03_filesystem.py` | ✅ 实测（F 盘复核） | rc = **0**，mtime/只读/锁三节全部按预期输出，**无需设编码变量** |
+| `02_pipeline.py` 实验 2b（真实 bash） | ✅ **已实测**（本机复核） | bash 正常；A/B/C 三组输出全部按预期（`pipefail` 前 0 后 4） |
+| `03_filesystem.py` | ✅ 实测（本机复核） | rc = **0**，mtime/只读/锁三节全部按预期输出，**无需设编码变量** |
 | `03_filesystem.py`（强制 GBK 管道） | ✅ 实测 | rc = **0**（修复后）；修复前 rc=1 `UnicodeEncodeError` @ `:56`（`U+2705`） |
-| `04_subprocess.py` | ✅ 实测（F 盘复核） | rc = **0**，4a–4e 全部按预期，**无需设编码变量** |
+| `04_subprocess.py` | ✅ 实测（本机复核） | rc = **0**，4a–4e 全部按预期，**无需设编码变量** |
 | `04_subprocess.py`（强制 GBK 管道） | ✅ 实测 | rc = **0**（修复后）；修复前 rc=1 `UnicodeEncodeError` @ `:83`（`U+274C`） |
 | `spec-kit` Python 版退出码 0 / 1 | ✅ 实测 | 成功路径 rc=0（text 与 `--json`）；`--require-tasks` 缺 tasks.md → rc=1、stdout 空 |
 | `spec-kit` Python 版 `--json` 紧凑格式 | ✅ 实测 | `{"FEATURE_DIR":"...","AVAILABLE_DOCS":["research.md","contracts/"]}`（无空格） |
@@ -811,12 +811,12 @@ win32 stdio reconfigure 是同一手法。修复后实测（含强制 GBK 管道
 | `spec-kit` **bash 版**的任何行为 | ⚠️ **沙箱内未实测，本机已复核** | 沙箱内 bash 起不来（`-1073741502`）；迁移后本机 bash 正常（`bash -c "exit 0"` → 0），第 1–4 条 bash 结论仍建议在 CI 环境复跑 |
 | `set -o pipefail` / `2>&1` / `2>/dev/null` 的实际效果 | ✅ **本机已实测** | 通过 `02_pipeline.py` 实验 2b 真实跑出（A/B/C 三组） |
 | `printf x` 技巧 | ⚠️ **未实测，已静态核对** | 逐字读了 `check-prerequisites.sh:186-187`，机制解释见第 4 条 |
-| 坑 1（bash/msys）、坑 2（`node --test`）、坑 3（TLS）、坑 5（GBK） | ✅ 实测 | 均有命令 + 原始报错 + 退出码；坑 1/坑 5 已在 F 盘复核为修复/消失 |
-| 坑 4（pip 静默卡死） | ⚠️ **前提已核实、现象未复现** | `pip cache dir` = `c:\users\zhb\appdata\local\pip\cache`（工作区外）；未重新触发完整卡死现象 |
+| 坑 1（bash/msys）、坑 2（`node --test`）、坑 3（TLS）、坑 5（GBK） | ✅ 实测 | 均有命令 + 原始报错 + 退出码；坑 1/坑 5 已在 本机复核为修复/消失 |
+| 坑 4（pip 静默卡死） | ⚠️ **前提已核实、现象未复现** | `pip cache dir` = `%LOCALAPPDATA%\pip\cache`（工作区外）；未重新触发完整卡死现象 |
 
-**修订记录（2026-10-11 迁移到 F 盘后）**：① 四个脚本内置 `_force_utf8()`，
+**修订记录（2026-10-11 本机）**：① 四个脚本内置 `_force_utf8()`，
 GBK 场景不再崩溃，README 中"先设 UTF-8"的指引已删除；② 实验 2b 本机实测
-通过（bash 正常），"未实测"标记清除；③ 路径统一改为 F 盘；④ 行号引用
+通过（bash 正常），"未实测"标记清除；③ 路径统一改为相对仓库根；④ 行号引用
 按加 `_force_utf8` 后的新行号更新。
 
 **文件改动边界**：初版 README 撰写时未修改任何其他文件；迁移后**修改了

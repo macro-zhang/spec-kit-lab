@@ -1,6 +1,6 @@
 # spec-kit 架构拆解
 
-> 拆解对象：`F:\Users\zhb\Desktop\study\spec-kit`（github/spec-kit，main 分支浅克隆；2026-10-11 自 C 盘迁移）
+> 拆解对象：`spec-kit/`（github/spec-kit 的 main 分支浅克隆，放在仓库同级目录，不入库）
 > 所有结论都带 `文件路径:行号`，你可以逐条去核对。
 
 ---

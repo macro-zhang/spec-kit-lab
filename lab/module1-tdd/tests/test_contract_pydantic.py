@@ -11,8 +11,8 @@ pytestmark = pytest.mark.contract
 
 VALID_PAYLOAD = {
     "id": 42,
-    "username": "zhb_dev",
-    "email": "zhb@example.com",
+    "username": "alice_dev",
+    "email": "alice@example.com",
     "role": "admin",
     "tags": ["study", "spec-kit"],
 }
@@ -37,8 +37,8 @@ def test_role_defaults_to_member() -> None:
         ("id", 0, "id 必须 > 0"),
         ("id", "42", "id 必须是整数，不接受数字字符串"),
         ("username", "ab", "太短"),
-        ("username", "ZHB", "必须小写"),
-        ("username", "zhb-dev", "连字符不合法，只允许 [a-z0-9_]"),
+        ("username", "ALICE", "必须小写"),
+        ("username", "alice-dev", "连字符不合法，只允许 [a-z0-9_]"),
         ("email", "not-an-email", "邮箱格式"),
         ("role", "root", "role 是封闭枚举"),
         ("tags", ["OK_UPPER"], "标签必须小写"),

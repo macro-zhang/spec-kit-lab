@@ -43,7 +43,7 @@ module1-tdd/
 
 ```powershell
 # 一次性准备
-C:\Users\zhb\AppData\Local\Programs\Python\Python311\python.exe -m venv ..\.venv
+python -m venv ..\.venv
 ..\.venv\Scripts\python.exe -m pip install --no-cache-dir pytest pydantic jsonschema
 
 # 跑全部测试

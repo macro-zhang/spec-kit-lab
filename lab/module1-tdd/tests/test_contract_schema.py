@@ -36,8 +36,8 @@ SCHEMA_PATH = REPO_ROOT / "contracts" / "user-profile.schema.json"
 
 VALID_PAYLOAD: dict[str, Any] = {
     "id": 42,
-    "username": "zhb_dev",
-    "email": "zhb@example.com",
+    "username": "alice_dev",
+    "email": "alice@example.com",
     "role": "admin",
     "tags": ["study", "spec-kit"],
 }
