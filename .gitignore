@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# 实验台运行产物（钩子矩阵演练生成的临时仓库与二进制探针）
+lab/module2-git/_scratch/
+lab/module2-git/tools/hookprobe/hookprobe.exe
+
+# 临时文件与安装日志
+*.log
+test_output.txt
+
+# 编辑器 / 工具目录
+.idea/
+.vscode/
+.claude/
+.DS_Store
