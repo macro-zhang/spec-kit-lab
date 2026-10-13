@@ -47,7 +47,22 @@ python run_red_green_refactor.py
 
 > **Windows 用户注意**：本仓库的脚本会把 stdout/stderr 先 reconfigure 成 UTF-8。这不是装饰——GBK 控制台遇到中文输出会直接 `UnicodeEncodeError` 把整份报告从中间截断，这个坑我真的踩过，修法写进了 `run_red_green_refactor.py` 的 `_force_utf8()`。
 
+## 关于文中的 `文件:行号`
+
+`docs/04`、`docs/05` 里的每条 `路径:行号` 都指向 **[github/spec-kit](https://github.com/github/spec-kit) 的 `0443760`（2026-10-09）浅克隆**，放在本仓库同级目录 `spec-kit/`（不随本仓库分发）。上游 `main` 仍在演进，行号会漂移——要逐条核对，请先检出那个提交：
+
+```bash
+git clone https://github.com/github/spec-kit.git ../spec-kit
+git -C ../spec-kit checkout 0443760
+```
+
+（完整克隆再检出，比浅克隆加 `--depth` 稳——浅仓库里目标提交可能根本不存在。）
+
 ## 现状
 
 - 三块实验台均已建成，用例与脚本全绿。
 - 逐模块的实操讲解与扩写在持续进行中，README 与 `docs/` 会随进度更新。
+
+## 许可
+
+MIT © 2026 张宏博
