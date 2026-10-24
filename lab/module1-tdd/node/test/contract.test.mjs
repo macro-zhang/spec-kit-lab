@@ -15,7 +15,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-import { structuralErrors, assertProfile } from "../src/profile.mjs";
+import { structuralErrors, assertProfile, REQUIRED } from "../src/profile.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = join(HERE, "..", "..", "contracts", "user-profile.schema.json");
@@ -25,6 +25,7 @@ const VALID_PROFILE = Object.freeze({
   id: 7,
   username: "alice_01",
   email: "alice@example.com",
+  locale: "zh_CN",
   role: "member",
   tags: ["alpha", "beta-2"],
 });
@@ -79,6 +80,7 @@ const FIELD_CASES = [
   [{ username: "with space" }, /username 必须匹配/],
   [{ email: "not-an-email" }, /email 格式不合法/],
   [{ email: "a@b" }, /email 格式不合法/],
+  [{ locale: "zh-cn" }, /locale 必须形如/],
   [{ role: "owner" }, /role 必须是/],
   [{ role: null }, /role 必须是/],
   [{ tags: "alpha" }, /tags 必须是数组/],
@@ -100,16 +102,19 @@ for (const [patch, pattern] of FIELD_CASES) {
 
 test("缺失字段要逐个报出来", () => {
   const errors = structuralErrors({});
-  assert.equal(errors.length, 3, "id / username / email 三个必填全应被指出");
+  assert.equal(errors.length, 4, "id / username / email / locale 四个必填全应被指出");
   // role 与 tags 有默认值，所以缺席**不算**违规 —— 这条断言防止
   // 有人把「可选」误实现成「必填」。
-  assert.deepEqual(structuralErrors({ id: 1, username: "abc", email: "a@b.co" }), []);
+  assert.deepEqual(
+    structuralErrors({ id: 1, username: "abc", email: "a@b.co", locale: "zh_CN" }),
+    [],
+  );
 });
 
 // ── 一次报全部，而不是撞到第一个就停 ─────────────────────────────────
 test("多个违规应一次性全部报出", () => {
-  const errors = structuralErrors({ id: -1, username: "X", email: "nope", role: "boss" });
-  // id / username / email / role 各一处。
+  const errors = structuralErrors({ id: -1, username: "X", email: "nope", locale: "zh_CN", role: "boss" });
+  // id / username / email / role 各一处（locale 合法，不添乱）。
   // 注意 tags 缺席**不算**违规（它有默认值），所以这里是 4 而不是 5 ——
   // 这个数字本身就在替契约说话。
   assert.equal(errors.length, 4, `实际 ${errors.length} 条: ${JSON.stringify(errors)}`);
@@ -127,9 +132,10 @@ test("代码侧契约与 JSON Schema 不许漂移（只比语义骨架）", () =
     "schema 必须声明 additionalProperties=false，否则多塞字段不会被拦",
   );
 
-  // 必填集合必须一致 —— 与 Pydantic 侧的 model_json_schema()["required"] 对齐：
-  // role / tags 有默认值 -> 非必填。
-  assert.deepEqual([...SCHEMA.required].sort(), ["email", "id", "username"]);
+  // 必填集合必须一致 —— 直接读代码侧的 REQUIRED，而不是手抄一份清单：
+  // 手抄版只能发现「schema 变了」，发现不了「代码变了」。
+  // role / tags 有默认值 -> 非必填；locale 无默认值 -> 必填。
+  assert.deepEqual([...SCHEMA.required].sort(), [...REQUIRED].sort());
 
   // 逐字段语义骨架：类型 + 关键约束
   assert.equal(SCHEMA.properties.id.type, "integer");
@@ -142,6 +148,9 @@ test("代码侧契约与 JSON Schema 不许漂移（只比语义骨架）", () =
 
   assert.equal(SCHEMA.properties.email.type, "string");
   assert.ok(SCHEMA.properties.email.pattern, "email 必须有 pattern");
+
+  assert.equal(SCHEMA.properties.locale.type, "string");
+  assert.equal(SCHEMA.properties.locale.pattern, "^[a-z]{2}_[A-Z]{2}$");
 
   assert.deepEqual(SCHEMA.properties.role.enum, ["admin", "member", "guest"]);
 

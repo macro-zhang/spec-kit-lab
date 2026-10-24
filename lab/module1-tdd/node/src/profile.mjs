@@ -23,19 +23,21 @@
 
 const ROLES = Object.freeze(["admin", "member", "guest"]);
 
-// 必填的只有这三个。role / tags 在实现里有默认值 -> 对调用方是可省略的，
-// 因此**不能**列进 required。这正是 Python 侧第一次跑红的那个漂移：
-// 代码给了默认值、schema 却写 required，两边说法不一致。
-const REQUIRED = Object.freeze(["id", "username", "email"]);
+// 必填的四个：id / username / email / locale —— locale 无默认值，调用方必须给。
+// role / tags 在实现里有默认值 -> 对调用方可省略，因此**不能**列进 required。
+// 这正是 Python 侧第一次跑红的那个漂移：代码给了默认值、schema 却写
+// required，两边说法不一致。
+export const REQUIRED = Object.freeze(["id", "username", "email", "locale"]);
 
 // 允许出现的字段全集。注意它和 REQUIRED 是**两个不同的集合**：
 // 「可以出现」不等于「必须出现」。把这两个概念混成一个变量，
 // 就会同时犯"必填漏检"和"可选字段被误报未知"两种错。
-const ALLOWED = Object.freeze(["id", "username", "email", "role", "tags"]);
+const ALLOWED = Object.freeze(["id", "username", "email", "locale", "role", "tags"]);
 
 const USERNAME_RE = /^[a-z0-9_]+$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/;
 const TAG_RE = /^[a-z0-9_-]+$/;
+const LOCALE_RE = /^[a-z]{2}_[A-Z]{2}$/;
 
 const isPlainObject = (v) =>
   typeof v === "object" && v !== null && !Array.isArray(v);
@@ -103,6 +105,16 @@ export function structuralErrors(data) {
       errors.push(`email 必须是字符串，实际是 ${describe(v)}`);
     } else if (!EMAIL_RE.test(v)) {
       errors.push(`email 格式不合法：${JSON.stringify(v)}`);
+    }
+  }
+
+  // ── locale ───────────────────────────────────────────────────────
+  if ("locale" in data) {
+    const v = data.locale;
+    if (typeof v !== "string") {
+      errors.push(`locale 必须是字符串，实际是 ${describe(v)}`);
+    } else if (!LOCALE_RE.test(v)) {
+      errors.push(`locale 必须形如 zh_CN（小写2_大写2）：${JSON.stringify(v)}`);
     }
   }
 
