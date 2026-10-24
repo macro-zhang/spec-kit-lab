@@ -121,7 +121,7 @@ def schema() -> dict[str, Any]:
 ### 2.5 marker 与 `--strict-markers`
 
 - 声明处：`lab/module1-tdd/pyproject.toml:16-18` → `markers = ["contract: 契约测试 —— 校验对外承诺的输入输出形状"]`
-- 使用处：`tests/test_contract_pydantic.py:10` 与 `tests/test_contract_schema.py:22` 都是模块级 `pytestmark = pytest.mark.contract`
+- 使用处：`tests/test_contract_pydantic.py:10` 与 `tests/test_contract_schema.py:32` 都是模块级 `pytestmark = pytest.mark.contract`
 - 用途：`pytest -m contract` 只跑契约，`pytest -m "not contract"` 只跑行为测试。
 
 `addopts` 里的 `--strict-markers`（`pyproject.toml:15`）是关键：**未声明的 marker 直接变成收集错误**。实测对比：
