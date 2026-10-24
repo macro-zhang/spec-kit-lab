@@ -15,6 +15,7 @@ VALID_PAYLOAD = {
     "email": "alice@example.com",
     "role": "admin",
     "tags": ["study", "spec-kit"],
+    "locale": "zh_CN",
 }
 
 
@@ -42,6 +43,8 @@ def test_role_defaults_to_member() -> None:
         ("email", "not-an-email", "邮箱格式"),
         ("role", "root", "role 是封闭枚举"),
         ("tags", ["OK_UPPER"], "标签必须小写"),
+        ("tags", ["has space"], "标签不能带空格"),
+        ("locale", "zh-cn", "locale 必须形如 zh_CN")
     ],
 )
 def test_invalid_fields_rejected(field: str, bad_value: object, why: str) -> None:

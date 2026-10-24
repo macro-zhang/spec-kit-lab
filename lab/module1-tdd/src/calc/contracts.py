@@ -31,9 +31,11 @@ spec-kit 的 `tests/contract/` **既不用 jsonschema 也不用 pydantic**：
 
 from __future__ import annotations
 
+import re
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
 
 
 class UserProfile(BaseModel):
@@ -56,13 +58,15 @@ class UserProfile(BaseModel):
     email: Annotated[str, Field(pattern=r"^[^@\s]+@[^@\s]+\.[a-z]{2,}$")]
     role: Literal["admin", "member", "guest"] = "member"
     tags: list[str] = Field(default_factory=list, max_length=10)
+    locale: Annotated[str, Field(pattern=r"^[a-z]{2}_[A-Z]{2}$")]
+
 
     @field_validator("tags")
     @classmethod
-    def _tags_must_be_lowercase(cls, value: list[str]) -> list[str]:
+    def _tags_must_match_pattern(cls, value: list[str]) -> list[str]:
         for tag in value:
-            if tag != tag.lower():
-                raise ValueError(f"标签必须小写，收到: {tag!r}")
+            if re.fullmatch(r"[a-z0-9_-]+", tag) is None:
+                raise ValueError(f"标签必须匹配 [a-z0-9_-]+，收到: {tag!r}")
         return value
 
 

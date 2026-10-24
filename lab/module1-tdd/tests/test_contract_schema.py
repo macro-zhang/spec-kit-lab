@@ -40,6 +40,7 @@ VALID_PAYLOAD: dict[str, Any] = {
     "email": "alice@example.com",
     "role": "admin",
     "tags": ["study", "spec-kit"],
+    "locale": "zh_CN",
 }
 
 
@@ -72,8 +73,10 @@ def test_schema_accepts_valid_payload(schema: dict[str, Any]) -> None:
         lambda p: {**p, "tags": ["UPPER"]},
         lambda p: {**p, "nickname": "多余字段"},
         lambda p: {k: v for k, v in p.items() if k != "email"},
+        lambda p: {**p, "tags": ["has space"]},
+        lambda p: {**p, "locale": "zh-cn"},
     ],
-    ids=["id非正", "用户名大写", "邮箱错", "角色越界", "标签大写", "多余字段", "缺必填"],
+    ids=["id非正", "用户名大写", "邮箱错", "角色越界", "标签大写", "多余字段", "缺必填", "标签带空格", "locale格式错"]
 )
 def test_schema_rejects_invalid_payload(schema: dict[str, Any], mutate) -> None:
     """(c) 负例拦截 —— 注意 `additionalProperties: false` 对应多余字段那条。"""

@@ -5,7 +5,7 @@
   "description": "对外承诺的用户画像契约。冻结在版本库里，任何改动都必须走评审。",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "username", "email"],
+  "required": ["id", "username", "email", "locale"],
   "properties": {
     "id": {
       "type": "integer",
@@ -36,6 +36,11 @@
         "type": "string",
         "pattern": "^[a-z0-9_-]+$"
       }
+    },
+    "locale": {
+      "type": "string",
+      "pattern": "^[a-z]{2}_[A-Z]{2}$",
+      "description": "区域设置，形如 zh_CN"
     }
   }
 }
