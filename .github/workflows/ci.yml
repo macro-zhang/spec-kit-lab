@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  module1-python:
+    name: module1 · TDD 与契约测试（Python）
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lab/module1-tdd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pydantic jsonschema
+      - name: 行为 + 契约测试（49 例）
+        run: python -m pytest -q
+      - name: Red-Green-Refactor 驱动器自检
+        run: python run_red_green_refactor.py
+
+  module1-node:
+    name: module1 · Node 镜像（零依赖）
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lab/module1-tdd/node
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: duration + contract 套件
+        run: npm test
+      - name: RGR 驱动器自检
+        run: npm run rgr
+
+  module2-git:
+    name: module2 · Git 工作流与钩子
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lab/module2-git
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pyyaml
+      - name: 配置测试用 git 身份（用例会在临时目录里建仓提交）
+        run: |
+          git config --global user.name "ci"
+          git config --global user.email "ci@example.invalid"
+      - name: 钩子矩阵与门禁用例（75 例）
+        run: python -m pytest -q
