@@ -73,7 +73,7 @@ $ErrorActionPreference = 'Continue'
 #    pre-commit, but we do not rely on that.
 # ---------------------------------------------------------------------------
 $repoRoot = $null
-$top = & git.exe rev-parse --show-toplevel 2>$null
+$top = & git rev-parse --show-toplevel 2>$null
 if ($LASTEXITCODE -eq 0 -and $top) {
     $repoRoot = ([string]($top | Select-Object -First 1)).Trim()
 }
@@ -97,7 +97,7 @@ $candidates = New-Object System.Collections.Generic.List[string]
 if ($env:TESTS_TOUCHED_CHECKER) { $candidates.Add($env:TESTS_TOUCHED_CHECKER) }
 
 $hooksDir = $null
-$gitPath = & git.exe rev-parse --git-path hooks 2>$null
+$gitPath = & git rev-parse --git-path hooks 2>$null
 if ($LASTEXITCODE -eq 0 -and $gitPath) {
     $hooksDir = ([string]($gitPath | Select-Object -First 1)).Trim()
     if (-not [System.IO.Path]::IsPathRooted($hooksDir)) {
@@ -105,8 +105,11 @@ if ($LASTEXITCODE -eq 0 -and $gitPath) {
     }
     $candidates.Add((Join-Path $hooksDir 'check_tests_touched.py'))
 }
-$candidates.Add((Join-Path $repoRoot 'scripts\check_tests_touched.py'))
-$candidates.Add((Join-Path $repoRoot 'lab\module2-git\scripts\check_tests_touched.py'))
+# Forward slashes on purpose: the only separator Linux accepts, and Windows
+# APIs accept them too, so one spelling works everywhere (`git.exe` above was
+# the same kind of Windows-only assumption).
+$candidates.Add((Join-Path $repoRoot 'scripts/check_tests_touched.py'))
+$candidates.Add((Join-Path $repoRoot 'lab/module2-git/scripts/check_tests_touched.py'))
 
 foreach ($c in $candidates) {
     if ($c -and (Test-Path -LiteralPath $c -PathType Leaf)) { $checker = $c; break }

@@ -38,7 +38,12 @@
 #     bash .git/hooks/pre-commit --json    # payload instead of prose
 # ===========================================================================
 
-set -euo pipefail
+set -eu
+# pipefail is a bash/ksh extension; plain POSIX sh (e.g. Ubuntu's dash, which
+# is what `sh` is on GitHub runners) rejects it outright. Enable it only when
+# the shell supports it, so this hook keeps working under any POSIX sh --
+# the test suite invokes it as `sh hooks/pre-commit` precisely to hold this.
+if (set -o pipefail) 2>/dev/null; then set -o pipefail; fi
 
 # --------------------------------------------------------------------------
 # 1. repository root
@@ -92,7 +97,11 @@ fi
 # the Microsoft Store instead of interpreting your script. Same idea, quieter
 # failure: a broken/renamed interpreter that exists but cannot run.
 # So every candidate has to prove itself by executing a real Python snippet.
-python_argv=()
+# bash arrays are not POSIX either (dash has none), so the interpreter lives
+# in two plain variables: "$py1" is the program, "$py2" an optional leading
+# argument (only the Windows "py -3" launcher needs one).
+py1=
+py2=
 
 is_store_alias() {
   case "$(command -v "$1" 2>/dev/null || true)" in
@@ -107,14 +116,14 @@ probe_python() {
 }
 
 if ! is_store_alias python3 && probe_python python3; then
-  python_argv=(python3)
+  py1=python3
 elif ! is_store_alias python && probe_python python; then
-  python_argv=(python)
+  py1=python
 elif ! is_store_alias py && probe_python py -3; then
   # The Windows py launcher: `py -3` is a command line, not a single program,
-  # which is exactly why python_argv is an array and is expanded as
-  # "${python_argv[@]}" everywhere below.
-  python_argv=(py -3)
+  # hence the two-variable py1/py2 form expanded explicitly below.
+  py1=py
+  py2=-3
 else
   echo "pre-commit[check-tests-touched]: ERROR: no working Python 3 found" >&2
   echo "pre-commit[check-tests-touched]: ERROR: tried: python3, python, py -3" >&2
@@ -130,7 +139,11 @@ fi
 # Do not "improve" this by swallowing the code: the day this hook returns 0 on
 # a violation is the day it stops being a gate.
 set +e
-"${python_argv[@]}" "$checker" "$@"
+if [ -n "$py2" ]; then
+  "$py1" "$py2" "$checker" "$@"
+else
+  "$py1" "$checker" "$@"
+fi
 status=$?
 set -e
 
