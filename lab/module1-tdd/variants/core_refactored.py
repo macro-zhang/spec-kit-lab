@@ -15,12 +15,12 @@ from __future__ import annotations
 import re
 
 # 单位 -> 秒。顺序无关，正则里的字符类从这张表派生，避免两处不同步。
-_UNIT_SECONDS: dict[str, int] = {"d": 86400, "h": 3600, "m": 60, "s": 1}
+_UNIT_SECONDS: dict[str, int] = {"w": 604800, "d": 86400, "h": 3600, "m": 60, "s": 1}
 
 _DURATION = re.compile(
-    r"\A(?P<segments>(?:\d+[dhms])+)\Z",  # 整体必须完全匹配，杜绝首尾垃圾
+    r"\A(?P<segments>(?:\d+[wdhms])+)\Z",  # 整体必须完全匹配，杜绝首尾垃圾
 )
-_SEGMENT = re.compile(r"(?P<amount>\d+)(?P<unit>[dhms])")
+_SEGMENT = re.compile(r"(?P<amount>\d+)(?P<unit>[wdhms])")
 
 
 def parse_duration(text: str) -> int:
